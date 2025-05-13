@@ -1,6 +1,5 @@
 package com.gruposilla.back.model.DTO;
 
-import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
@@ -9,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 
-public class usuarioRegistroDTO {
+public class UsuarioRegistroDTO {
     private Long id;
     private String nombre;
     private String correo;
