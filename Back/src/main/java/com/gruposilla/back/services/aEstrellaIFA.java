@@ -4,7 +4,7 @@ import com.gruposilla.back.algorithm.graph.Nodo;
 
 import java.util.List;
 
-public interface aEstrellaIFA {
+public interface AEstrellaIFA {
 
     List<Nodo> encontrarRuta(Nodo inicio, Nodo fin);
 }
