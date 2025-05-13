@@ -2,14 +2,14 @@ package com.gruposilla.back.algorithm;
 
 import com.gruposilla.back.algorithm.graph.Arista;
 import com.gruposilla.back.algorithm.graph.Nodo;
-import com.gruposilla.back.services.aEstrellaIFA;
+import com.gruposilla.back.services.AEstrellaIFA;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class AEstrellaService implements aEstrellaIFA {
+public class AEstrellaService implements AEstrellaIFA {
 
     @Override
     public List<Nodo> encontrarRuta(Nodo incio, Nodo fin){

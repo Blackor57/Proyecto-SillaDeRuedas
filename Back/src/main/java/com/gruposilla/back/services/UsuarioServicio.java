@@ -7,11 +7,10 @@ public interface UsuarioServicio {
 
     public Usuario save(UsuarioRegistroDTO registroDTO);
 
-    public Usuario update();
+    public Usuario update(long id, UsuarioRegistroDTO registroDTO);
 
-    public Usuario delete();
+    public void delete(long id);
 
-    public Usuario pull();
-
+    public Usuario pull(long id);
 
 }

@@ -15,8 +15,11 @@ import java.util.List;
 @RequestMapping("/api/ruta")
 public class RutaController {
 
-    @Autowired
-    private AEstrellaService aEstrellaService;
+    private final AEstrellaService aEstrellaService;
+
+    public RutaController(AEstrellaService aEstrellaService) {
+        this.aEstrellaService = aEstrellaService;
+    }
 
     @PostMapping
     public List<Nodo> calcularRuta(@RequestBody CoordenadasRequest request){
