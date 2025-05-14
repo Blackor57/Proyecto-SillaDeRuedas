@@ -4,6 +4,7 @@ import com.gruposilla.back.model.DTO.UsuarioRegistroDTO;
 import com.gruposilla.back.model.entity.Usuario;
 import com.gruposilla.back.repository.UsuarioRepository;
 import com.gruposilla.back.services.UsuarioServicio;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ public class UsuarioRegistroIMPL implements UsuarioServicio {
     public UsuarioRegistroIMPL(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
+
 
     @Override
     public Usuario save(UsuarioRegistroDTO registroDTO) {

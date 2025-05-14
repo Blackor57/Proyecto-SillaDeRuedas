@@ -20,5 +20,4 @@ public class Usuario {
     private String correo;
     private String password;
     private String inicio;
-
 }

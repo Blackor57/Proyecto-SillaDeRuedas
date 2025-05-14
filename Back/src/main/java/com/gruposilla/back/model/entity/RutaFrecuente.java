@@ -3,26 +3,24 @@ package com.gruposilla.back.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "estado_silla")
+@Table(name = "ruta_frecuente")
 
-public class Estado_silla {
+public class RutaFrecuente {
 
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private long id;
 
-    private Integer bateria;
-    private String estadoSistema;
+    private String nombre;
 
-    private LocalDateTime timestamp;
+    @Lob
+    private String coordenadas; // formato JSON
 
     @ManyToOne
     @JoinColumn(name = "id_usuario")

@@ -17,6 +17,7 @@ public class UsuarioController {
         this.usuarioServicio = usuarioServicio;
     }
 
+
     @PostMapping
     public ResponseEntity<String> registrarCuenta(@RequestBody UsuarioRegistroDTO usuarioRegistroDTO) {
         usuarioServicio.save(usuarioRegistroDTO);

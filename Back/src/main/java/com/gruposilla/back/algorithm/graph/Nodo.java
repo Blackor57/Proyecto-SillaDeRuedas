@@ -15,7 +15,7 @@ import java.util.List;
 
 public class Nodo {
 
-    private String id;
+    private long id;
 
     private double x, y;
 
@@ -26,7 +26,4 @@ public class Nodo {
     private double f;
 
     private Nodo padre;
-
-
-
 }

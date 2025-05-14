@@ -9,6 +9,10 @@ import lombok.*;
 @Builder
 
 public class CoordenadasRequest {
-    private String inicio;
-    private String fin;
+    private double inicioX;
+    private double inicioY;
+
+    private double finX;
+    private double finY;
+
 }
