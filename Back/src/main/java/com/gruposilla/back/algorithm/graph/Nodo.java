@@ -1,5 +1,6 @@
 package com.gruposilla.back.algorithm.graph;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,8 @@ public class Nodo {
 
     private long id;
 
-    private double x, y;
+    private double x;
+    private double y;
 
     private List<Arista> conexiones;
 
@@ -25,5 +27,6 @@ public class Nodo {
     private double h;
     private double f;
 
+    @JsonIgnore
     private Nodo padre;
 }

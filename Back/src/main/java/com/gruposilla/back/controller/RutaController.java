@@ -3,10 +3,7 @@ package com.gruposilla.back.controller;
 import com.gruposilla.back.algorithm.AEstrellaService;
 import com.gruposilla.back.algorithm.MapaBuilder;
 import com.gruposilla.back.algorithm.graph.Nodo;
-import com.gruposilla.back.model.DTO.AristaDTO;
-import com.gruposilla.back.model.DTO.CoordenadasRequest;
-import com.gruposilla.back.model.DTO.MapaRequest;
-import com.gruposilla.back.model.DTO.NodoDTO;
+import com.gruposilla.back.model.DTO.*;
 import com.gruposilla.back.model.entity.AristaEntity;
 import com.gruposilla.back.model.entity.NodoEntity;
 import com.gruposilla.back.model.entity.Usuario;
@@ -24,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ruta")
@@ -47,12 +45,11 @@ public class RutaController {
     }
 
     @PostMapping
-    public List<Nodo> calcularRuta(@RequestBody CoordenadasRequest request) {
+    public List<CoordenadaDTO> calcularRuta(@RequestBody CoordenadasRequest request) {
         List<NodoEntity> nodosBD = nodoRepository.findAll();
         List<AristaEntity> aristasBD = aristaRepository.findAll();
         Map<Long, Nodo> mapa = mapaBuilder.construirMapa(nodosBD, aristasBD);
 
-        // Buscar nodos por coordenadas exactas
         NodoEntity nodoInicio = nodoRepository.findByXAndY(request.getInicioX(), request.getInicioY());
         NodoEntity nodoFin = nodoRepository.findByXAndY(request.getFinX(), request.getFinY());
 
@@ -63,12 +60,20 @@ public class RutaController {
         Nodo inicio = mapa.get(nodoInicio.getId());
         Nodo fin = mapa.get(nodoFin.getId());
 
-        return aEstrellaService.encontrarRuta(inicio, fin);
+        List<Nodo> ruta = aEstrellaService.encontrarRuta(inicio, fin);
+
+        // Convertir la ruta en CoordenadaDTO
+        return ruta.stream()
+                .map(n -> new CoordenadaDTO(n.getX(), n.getY()))
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/guardar-mapa")
     public ResponseEntity<?> guardarMapa(@RequestBody MapaRequest request) {
-        // Guardar nodos primero
+        // ⚠️ BORRAR lo anterior
+        aristaRepository.deleteAll();
+        nodoRepository.deleteAll();
+
         Map<String, NodoEntity> nodoMap = new HashMap<>();
         for (NodoDTO nodoDTO : request.getNodos()) {
             NodoEntity nodo = new NodoEntity();
@@ -78,7 +83,6 @@ public class RutaController {
             nodoMap.put(nodoDTO.getIdentificador(), nodo);
         }
 
-        // Luego guardar aristas
         for (AristaDTO aristaDTO : request.getAristas()) {
             NodoEntity origen = nodoMap.get(aristaDTO.getOrigenId());
             NodoEntity destino = nodoMap.get(aristaDTO.getDestinoId());

@@ -1,0 +1,31 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 20px auto;
+}
+
+td {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #ccc;
+}
+
+.start {
+    background-color: green;
+}
+
+.end {
+    background-color: red;
+}
+
+.wall {
+    background-color: black;
+}
+
+.path {
+    background-color: yellow;
+}
