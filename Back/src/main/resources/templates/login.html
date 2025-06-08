@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesión</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<h1>Iniciar sesión</h1>
+
+<form id="loginForm">
+    <input type="email" id="correo" placeholder="Correo" required>
+    <input type="password" id="password" placeholder="Contraseña" required>
+    <button type="submit">Iniciar sesión</button>
+</form>
+
+<script th:src="@{/js/login.js}"></script>
+</body>
+</html>

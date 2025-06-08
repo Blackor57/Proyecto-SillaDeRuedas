@@ -49,13 +49,24 @@ function construirMapaParaBackend() {
     return { nodos, aristas };
 }
 
+
+
 async function guardarMapaEnBackend() {
     const mapa = construirMapaParaBackend();
+    const token = localStorage.getItem('token');
 
+    if (!token) {
+        alert('No hay token JWT disponible. Inicia sesión primero.');
+        console.log('Token enviado:', token);
+        return;
+    }
     try {
         const response = await fetch('/api/ruta/guardar-mapa', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
             body: JSON.stringify(mapa)
         });
 

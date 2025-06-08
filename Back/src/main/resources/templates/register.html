@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<h1>Registro</h1>
+
+<form id="registro-form">
+    <input type="text" id="registro-nombre" name="nombre" />
+    <input type="email" id="registro-correo" name="correo" />
+    <input type="password" id="registro-password" name="password" />
+    <button type="submit">Registrarse</button>
+</form>
+
+<script th:src="@{/js/register.js}"></script>
+</body>
+</html>
