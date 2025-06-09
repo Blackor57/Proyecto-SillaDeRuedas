@@ -27,6 +27,8 @@ public class Nodo {
     private double h;
     private double f;
 
+
+
     @JsonIgnore
     private Nodo padre;
 }

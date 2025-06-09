@@ -1,0 +1,248 @@
+package com.gruposilla.back.algorithm;
+
+import com.gruposilla.back.algorithm.graph.ConexionHabitacion;
+import com.gruposilla.back.algorithm.graph.Coordenada;
+import com.gruposilla.back.algorithm.graph.Habitacion;
+import com.gruposilla.back.model.DTO.AristaDTO;
+import com.gruposilla.back.model.DTO.MapaRequest;
+import com.gruposilla.back.model.DTO.NodoDTO;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class BSPGenerator {
+
+    private final int MIN_TAMANIO = 6;
+    private List<Habitacion> habitaciones;
+
+    public MapaRequest generarMapa(int ancho, int alto) {
+        habitaciones = new ArrayList<>();
+        NodoBSP raiz = dividir(new NodoBSP(0, 0, ancho, alto));
+        crearHabitaciones(raiz);
+
+        AsignadorTiposHabitacion asignador = new AsignadorTiposHabitacion(ancho, alto);
+        asignador.asignarTipos(habitaciones);
+
+        AsignadorDeMuebles mueblador = new AsignadorDeMuebles();
+        mueblador.asignarMuebles(habitaciones);
+
+        conectarHabitacionesConMST();
+
+        imprimirMapaVisual(ancho, alto);
+
+        return convertirHabitacionesAMapa(ancho, alto);
+    }
+
+    private void crearPasilloHorizontal(int x1, int x2, int y) {
+        for (int x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+            habitaciones.add(new Habitacion(x, y, 1, 1, "Pasillo"));
+        }
+    }
+
+    private void crearPasilloVertical(int y1, int y2, int x) {
+        for (int y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+            habitaciones.add(new Habitacion(x, y, 1, 1, "Pasillo"));
+        }
+    }
+
+    private NodoBSP dividir(NodoBSP nodo) {
+        if (nodo.ancho < MIN_TAMANIO * 2 && nodo.alto < MIN_TAMANIO * 2) {
+            return nodo;
+        }
+
+        boolean dividirVertical = nodo.ancho > nodo.alto;
+        int max = (dividirVertical ? nodo.ancho : nodo.alto) - MIN_TAMANIO;
+        if (max <= MIN_TAMANIO) return nodo;
+
+        int corte = MIN_TAMANIO + new Random().nextInt(max - MIN_TAMANIO + 1);
+
+        if (dividirVertical) {
+            nodo.izquierda = dividir(new NodoBSP(nodo.x, nodo.y, corte, nodo.alto));
+            nodo.derecha = dividir(new NodoBSP(nodo.x + corte, nodo.y, nodo.ancho - corte, nodo.alto));
+        } else {
+            nodo.izquierda = dividir(new NodoBSP(nodo.x, nodo.y, nodo.ancho, corte));
+            nodo.derecha = dividir(new NodoBSP(nodo.x, nodo.y + corte, nodo.ancho, nodo.alto - corte));
+        }
+
+        return nodo;
+    }
+
+    private void crearHabitaciones(NodoBSP nodo) {
+        if (nodo.izquierda == null && nodo.derecha == null) {
+            int roomX = nodo.x;
+            int roomY = nodo.y;
+            int roomW = nodo.ancho;
+            int roomH = nodo.alto;
+
+            if (roomW > 4) {
+                roomX += 1;
+                roomW -= 2;
+            }
+            if (roomH > 4) {
+                roomY += 1;
+                roomH -= 2;
+            }
+
+            habitaciones.add(new Habitacion(roomX, roomY, roomW, roomH));
+        } else {
+            if (nodo.izquierda != null) crearHabitaciones(nodo.izquierda);
+            if (nodo.derecha != null) crearHabitaciones(nodo.derecha);
+        }
+    }
+
+    public void conectarHabitacionesConMST() {
+        List<ConexionHabitacion> conexiones = GenerarMST.conectarHabitaciones(habitaciones);
+        for (ConexionHabitacion conexion : conexiones) {
+            crearPasilloEntreHabitaciones(conexion.getA(), conexion.getB());
+        }
+    }
+
+    private void crearPasilloEntreHabitaciones(Habitacion h1, Habitacion h2) {
+        int x1 = h1.getCentroX();
+        int y1 = h1.getCentroY();
+        int x2 = h2.getCentroX();
+        int y2 = h2.getCentroY();
+
+        if (new Random().nextBoolean()) {
+            crearPasilloHorizontal(x1, x2, y1);
+            crearPasilloVertical(y1, y2, x2);
+        } else {
+            crearPasilloVertical(y1, y2, x1);
+            crearPasilloHorizontal(x1, x2, y2);
+        }
+    }
+
+    private void agregarMurosDeBorde(boolean[][] grid, List<Coordenada> muros) {
+        int ancho = grid.length;
+        int alto = grid[0].length;
+
+        for (int x = 0; x < ancho; x++) {
+            if (!grid[x][0]) muros.add(new Coordenada(x, 0)); // Superior
+            if (!grid[x][alto - 1]) muros.add(new Coordenada(x, alto - 1)); // Inferior
+        }
+
+        for (int y = 0; y < alto; y++) {
+            if (!grid[0][y]) muros.add(new Coordenada(0, y)); // Izquierdo
+            if (!grid[ancho - 1][y]) muros.add(new Coordenada(ancho - 1, y)); // Derecho
+        }
+    }
+
+    private List<Coordenada> calcularMuros(boolean[][] grid) {
+        List<Coordenada> muros = new ArrayList<>();
+        int ancho = grid.length;
+        int alto = grid[0].length;
+
+        for (int x = 0; x < ancho; x++) {
+            for (int y = 0; y < alto; y++) {
+                if (!grid[x][y]) {
+                    boolean adyacenteAOcupado = false;
+                    // Revisar vecinos: si hay uno ocupado, este es un muro válido
+                    int[][] dirs = {{0,1}, {1,0}, {0,-1}, {-1,0}};
+                    for (int[] d : dirs) {
+                        int nx = x + d[0];
+                        int ny = y + d[1];
+                        if (nx >= 0 && nx < ancho && ny >= 0 && ny < alto) {
+                            if (grid[nx][ny]) {
+                                adyacenteAOcupado = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (adyacenteAOcupado) {
+                        muros.add(new Coordenada(x, y));
+                    }
+                }
+            }
+        }
+
+        return muros;
+    }
+
+    private MapaRequest convertirHabitacionesAMapa(int ancho, int alto) {
+        boolean[][] grid = new boolean[ancho][alto];
+        List<NodoDTO> nodos = new ArrayList<>();
+        List<AristaDTO> aristas = new ArrayList<>();
+        Map<String, String> nodoIds = new HashMap<>();
+        int idCounter = 0;
+
+        // Marcar habitaciones y pasillos en el grid
+        for (Habitacion h : habitaciones) {
+            for (int x = h.getX(); x < h.getX() + h.getAncho(); x++) {
+                for (int y = h.getY(); y < h.getY() + h.getAlto(); y++) {
+                    if (x >= 0 && x < ancho && y >= 0 && y < alto && !grid[x][y]) {
+                        grid[x][y] = true;
+                        String id = "n" + idCounter++;
+                        nodoIds.put(x + "," + y, id);
+                        nodos.add(new NodoDTO(id, x, y));
+                    }
+                }
+            }
+        }
+
+        // Crear aristas entre vecinos válidos
+        int[][] dirs = {{0,1}, {1,0}, {0,-1}, {-1,0}};
+        for (NodoDTO nodo : nodos) {
+            int x = (int) Math.round(nodo.getX());
+            int y = (int) Math.round(nodo.getY());
+            for (int[] d : dirs) {
+                int nx = x + d[0];
+                int ny = y + d[1];
+                String neighborKey = nx + "," + ny;
+                if (gridValido(grid, nx, ny) && nodoIds.containsKey(neighborKey)) {
+                    aristas.add(new AristaDTO(nodo.getIdentificador(), nodoIds.get(neighborKey), 1));
+                }
+            }
+        }
+
+        List<Coordenada> muros = calcularMuros(grid);
+        // Añadir muros en los bordes
+        agregarMurosDeBorde(grid, muros);
+
+        return new MapaRequest(nodos, aristas, muros);
+    }
+
+    private boolean gridValido(boolean[][] grid, int x, int y) {
+        return x >= 0 && x < grid.length && y >= 0 && y < grid[0].length;
+    }
+
+    private static class NodoBSP {
+        int x, y, ancho, alto;
+        NodoBSP izquierda, derecha;
+
+        NodoBSP(int x, int y, int ancho, int alto) {
+            this.x = x;
+            this.y = y;
+            this.ancho = ancho;
+            this.alto = alto;
+        }
+    }
+
+
+
+    public void imprimirMapaVisual(int ancho, int alto) {
+        char[][] grid = new char[ancho][alto];
+        for (Habitacion h : habitaciones) {
+            char simbolo = ' ';
+            switch(h.getTipo()) {
+                case "Sala": simbolo = 'S'; break;
+                case "Dormitorio": simbolo = 'D'; break;
+                case "Pasillo": simbolo = 'P'; break;
+                case "Cocina": simbolo = 'C'; break;
+                default: simbolo = '?'; break;
+            }
+            for (int x = h.getX(); x < h.getX() + h.getAncho(); x++) {
+                for (int y = h.getY(); y < h.getY() + h.getAlto(); y++) {
+                    grid[x][y] = simbolo;
+                }
+            }
+        }
+
+        for (int y = 0; y < alto; y++) {
+            for (int x = 0; x < ancho; x++) {
+                System.out.print(grid[x][y] == 0 ? ' ' : grid[x][y]);
+            }
+            System.out.println();
+        }
+    }
+}

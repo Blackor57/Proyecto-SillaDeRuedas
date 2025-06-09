@@ -3,6 +3,7 @@ package com.gruposilla.back.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gruposilla.back.algorithm.AEstrellaService;
+import com.gruposilla.back.algorithm.BSPGenerator;
 import com.gruposilla.back.algorithm.MapaBuilder;
 import com.gruposilla.back.algorithm.graph.Nodo;
 import com.gruposilla.back.model.DTO.*;
@@ -110,4 +111,38 @@ public class RutaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al convertir el mapa a JSON");
         }
     }
+
+    private void guardarMapaInternamente(MapaRequest request, Usuario usuario) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonMapa = mapper.writeValueAsString(request);
+
+            MapaEntity mapaEntity = new MapaEntity();
+            mapaEntity.setJsonMapa(jsonMapa);
+            mapaEntity.setUsuario(usuario);
+            mapaRepository.save(mapaEntity);
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error al guardar el mapa generado");
+        }
+    }
+
+    @PostMapping("/generar-bsp")
+    public ResponseEntity<?> generarMapaBSP() {
+        BSPGenerator generator = new BSPGenerator();
+        MapaRequest mapa = generator.generarMapa(30, 20);
+
+        // Obtener usuario
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        String email = userDetails.getUsername();
+        Usuario usuario = usuarioRepository.findByCorreo(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        // Guardar usando método auxiliar
+        guardarMapaInternamente(mapa, usuario);
+
+        return ResponseEntity.ok(mapa);
+    }
+
 }
