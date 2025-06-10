@@ -4,10 +4,7 @@ import com.gruposilla.back.algorithm.graph.Coordenada;
 import com.gruposilla.back.algorithm.graph.Habitacion;
 import com.gruposilla.back.algorithm.graph.Mueble;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class AsignadorDeMuebles {
 
@@ -30,10 +27,11 @@ public class AsignadorDeMuebles {
     );
 
     public void asignarMuebles(List<Habitacion> habitaciones) {
+        Random random = new Random();
+
         for (Habitacion h : habitaciones) {
             List<Mueble> muebles = new ArrayList<>();
             List<Coordenada> colisiones = new ArrayList<>();
-            Random random = new Random();
 
             List<String> tiposMuebles = switch (h.getTipo()) {
                 case "Sala" -> List.of("Sofá", "Mesa de centro", "TV");
@@ -44,20 +42,39 @@ public class AsignadorDeMuebles {
                 default -> new ArrayList<>();
             };
 
-            for (String tipo : tiposMuebles) {
-                int[] tam = tamañosMuebles.getOrDefault(tipo, new int[]{1,1});
+            // Barajar para aleatoriedad
+            List<String> mueblesAColocar = new ArrayList<>(tiposMuebles);
+            Collections.shuffle(mueblesAColocar, random);
+
+            int areaLibre = h.getAncho() * h.getAlto();
+            int areaOcupada = 0;
+
+            for (String tipo : mueblesAColocar) {
+                int[] tam = tamañosMuebles.getOrDefault(tipo, new int[]{1, 1});
                 int mAncho = tam[0];
                 int mAlto = tam[1];
 
                 boolean colocado = false;
+
                 for (int intentos = 0; intentos < 20 && !colocado; intentos++) {
-                    int fx = h.getX() + 1 + random.nextInt(Math.max(1, h.getAncho() - mAncho - 1));
-                    int fy = h.getY() + 1 + random.nextInt(Math.max(1, h.getAlto() - mAlto - 1));
+                    // Intentar con rotación aleatoria
+                    boolean rotar = random.nextBoolean();
+                    int ancho = rotar ? mAlto : mAncho;
+                    int alto = rotar ? mAncho : mAlto;
+
+                    int maxX = h.getAncho() - ancho - 2; // margen en bordes
+                    int maxY = h.getAlto() - alto - 2;
+
+                    if (maxX <= 0 || maxY <= 0) break; // no hay espacio
+
+                    int fx = h.getX() + 1 + random.nextInt(maxX + 1);
+                    int fy = h.getY() + 1 + random.nextInt(maxY + 1);
 
                     boolean colisiona = false;
                     List<Coordenada> espacioOcupado = new ArrayList<>();
-                    for (int dx = 0; dx < mAncho; dx++) {
-                        for (int dy = 0; dy < mAlto; dy++) {
+
+                    for (int dx = 0; dx < ancho; dx++) {
+                        for (int dy = 0; dy < alto; dy++) {
                             Coordenada c = new Coordenada(fx + dx, fy + dy);
                             if (colisiones.contains(c)) {
                                 colisiona = true;
@@ -69,11 +86,15 @@ public class AsignadorDeMuebles {
                     }
 
                     if (!colisiona) {
-                        muebles.add(new Mueble(tipo, new Coordenada(fx, fy), mAncho, mAlto));
+                        muebles.add(new Mueble(tipo, new Coordenada(fx, fy), ancho, alto));
                         colisiones.addAll(espacioOcupado);
+                        areaOcupada += ancho * alto;
                         colocado = true;
                     }
                 }
+
+                // Limitar cantidad de muebles si el espacio ya está bastante lleno
+                if (areaOcupada >= areaLibre * 0.5) break;
             }
 
             h.setMuebles(muebles);
