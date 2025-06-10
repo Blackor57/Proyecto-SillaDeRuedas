@@ -34,45 +34,13 @@ public class BSPGenerator {
         AsignadorDeMuebles mueblador = new AsignadorDeMuebles();
         mueblador.asignarMuebles(habitaciones);
 
-        if (usarPasilloCentral) {
-            generarPasilloCentral();
-        } else {
-            conectarHabitacionesConMST();
-        }
+        conectarHabitacionesConMST();
 
         imprimirMapaVisual(ancho, alto);
 
         return convertirHabitacionesAMapa(ancho, alto);
     }
 
-    private void generarPasilloCentral() {
-        boolean vertical = mapaAncho < mapaAlto;
-
-        if (vertical) {
-            int centroX = mapaAncho / 2;
-            crearPasilloVertical(0, mapaAlto - 1, centroX);
-        } else {
-            int centroY = mapaAlto / 2;
-            crearPasilloHorizontal(0, mapaAncho - 1, centroY);
-        }
-
-        // Conectar habitaciones al pasillo central
-        for (Habitacion hab : habitaciones) {
-            conectarAlPasilloCentral(hab, vertical);
-        }
-    }
-
-    private void conectarAlPasilloCentral(Habitacion hab, boolean vertical) {
-        if (vertical) {
-            int centroX = mapaAncho / 2;
-            int y = hab.getCentroY();
-            crearPasilloHorizontal(hab.getCentroX(), centroX, y);
-        } else {
-            int centroY = mapaAlto / 2;
-            int x = hab.getCentroX();
-            crearPasilloVertical(hab.getCentroY(), centroY, x);
-        }
-    }
 
     private boolean esEsquina(Habitacion hab) {
         return (hab.getX() <= 1 || hab.getX() + hab.getAncho() >= mapaAncho - 1) &&

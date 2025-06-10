@@ -16,68 +16,87 @@ public class AsignadorTiposHabitacion {
     private int mapaAncho;
     private int mapaAlto;
 
+    public AsignadorTiposHabitacion(int mapaAncho, int mapaAlto) {
+        this.mapaAncho = mapaAncho;
+        this.mapaAlto = mapaAlto;
+    }
+
+    private int maxBaños = 2;
+    private int maxDormitorios = 2;
+
     public void asignarTipos(List<Habitacion> habitaciones) {
         if (habitaciones.isEmpty()) return;
 
         int maxX = habitaciones.stream().mapToInt(h -> h.getX() + h.getAncho()).max().orElse(0);
         int maxY = habitaciones.stream().mapToInt(h -> h.getY() + h.getAlto()).max().orElse(0);
 
-        // Ordenar por tamaño (grande a pequeño)
+        // Ordenar por tamaño (de mayor a menor)
         habitaciones.sort(Comparator.comparingInt(h -> -(h.getAncho() * h.getAlto())));
 
         Set<Habitacion> asignadas = new HashSet<>();
 
-        // Sala: más grande
+        // Sala: la más grande
         Habitacion sala = habitaciones.get(0);
         sala.setTipo("Sala");
         asignadas.add(sala);
 
-        // Cocina: grande, no adyacente a baño
+        // Cocina: espaciosa, no en esquina, y no adyacente a un baño
         for (Habitacion h : habitaciones) {
-            if (!asignadas.contains(h) && !esEsquina(h, maxX, maxY) && !esAdyacenteATipo(h, "Baño", habitaciones)) {
+            if (!asignadas.contains(h) && !esEsquina(h, maxX, maxY) &&
+                    !esAdyacenteATipo(h, "Baño", habitaciones)) {
                 h.setTipo("Cocina");
                 asignadas.add(h);
                 break;
             }
         }
 
-        // Recibidor: más al centro
-        Habitacion centro = obtenerHabitacionCentral(habitaciones);
-        if (!asignadas.contains(centro)) {
-            centro.setTipo("Recibidor");
-            asignadas.add(centro);
+        // Recibidor: basado en la cercanía al punto de entrada (o centro)
+        Habitacion recibidor = obtenerHabitacionCentral(habitaciones);
+        if (!asignadas.contains(recibidor)) {
+            recibidor.setTipo("Recibidor");
+            asignadas.add(recibidor);
         }
 
-        // Baños: solo en esquinas
+        // Baños: asignar hasta maxBaños, preferentemente en esquinas o con buena accesibilidad
         int baños = 0;
         for (Habitacion h : habitaciones) {
             if (!asignadas.contains(h) && esEsquina(h, maxX, maxY)) {
                 h.setTipo("Baño");
                 asignadas.add(h);
                 baños++;
-                if (baños == 2) break;
+                if (baños == maxBaños) break;
+            }
+        }
+        // Si no se encuentran suficientes baños en esquina, se podrían asignar otras habitaciones
+        if (baños < maxBaños) {
+            for (Habitacion h : habitaciones) {
+                if (!asignadas.contains(h) && !esAdyacenteATipo(h, "Sala", habitaciones) &&
+                        !esAdyacenteATipo(h, "Cocina", habitaciones)) {
+                    h.setTipo("Baño");
+                    asignadas.add(h);
+                    baños++;
+                    if (baños == maxBaños) break;
+                }
             }
         }
 
-        // Dormitorios: no en esquina, no juntos, uno debe estar en esquina
+        // Dormitorios: asignar hasta maxDormitorios evitando adyacencias no deseadas
         int dormitorios = 0;
         for (Habitacion h : habitaciones) {
             if (asignadas.contains(h)) continue;
-            if (dormitorios == 0 && esEsquina(h, maxX, maxY)) {
-                h.setTipo("Dormitorio");
-                asignadas.add(h);
-                dormitorios++;
-            } else if (!esAdyacenteATipo(h, "Dormitorio", habitaciones) &&
+            // Puedes ajustar las condiciones según la distribución del inmueble
+            if (!esAdyacenteATipo(h, "Dormitorio", habitaciones) &&
                     !esAdyacenteATipo(h, "Cocina", habitaciones) &&
                     !esAdyacenteATipo(h, "Sala", habitaciones)) {
                 h.setTipo("Dormitorio");
                 asignadas.add(h);
                 dormitorios++;
-                if (dormitorios == 2) break;
+                if (dormitorios == maxDormitorios) break;
             }
         }
 
-        // ✅ Eliminar habitaciones no asignadas (antes se marcaban como "Pasillo")
+        // Si quedan habitaciones sin asignar, decide si asignarlas como "Pasillo" u otro uso auxiliar
+        // Aquí se decide mantenerlas o marcarlas con otro tipo
         habitaciones.removeIf(h -> !asignadas.contains(h));
     }
 
