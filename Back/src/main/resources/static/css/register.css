@@ -1,0 +1,498 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #4ade80 0%, #06b6d4 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Partículas de fondo animadas */
+body::before,
+body::after {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    animation: float 20s infinite linear;
+    z-index: -1;
+}
+
+body::before {
+    top: -100px;
+    left: -100px;
+    animation-delay: 0s;
+}
+
+body::after {
+    bottom: -100px;
+    right: -100px;
+    animation-delay: -10s;
+}
+
+/* Elementos flotantes adicionales */
+.floating-element {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.floating-element:nth-child(1) {
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: 10%;
+    animation: float 15s infinite linear;
+}
+
+.floating-element:nth-child(2) {
+    width: 120px;
+    height: 120px;
+    top: 60%;
+    right: 15%;
+    animation: float 25s infinite linear reverse;
+}
+
+.floating-element:nth-child(3) {
+    width: 60px;
+    height: 60px;
+    bottom: 30%;
+    left: 20%;
+    animation: float 18s infinite linear;
+    animation-delay: -5s;
+}
+
+h1 {
+    color: white;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+    opacity: 0;
+    animation: fadeInDown 1s ease-out 0.2s forwards;
+    max-width: 350px;
+    line-height: 1.3;
+}
+
+/* Contenedor del ícono */
+.icon-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: bounceIn 1.2s ease-out 0.5s forwards;
+}
+
+.cart-icon {
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(15px);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    animation: pulse 3s infinite;
+}
+
+.cart-icon::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: ripple 2s infinite;
+}
+
+.cart-icon svg {
+    width: 45px;
+    height: 45px;
+    fill: white;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    z-index: 1;
+}
+
+/* Formulario */
+#registro-form {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(25px);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    opacity: 0;
+    transform: translateY(40px);
+    animation: slideUpFade 1s ease-out 0.8s forwards;
+}
+
+#registro-form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4ade80, #06b6d4, #4ade80);
+    border-radius: 24px 24px 0 0;
+    animation: shimmer 3s infinite;
+}
+
+.form-title {
+    text-align: center;
+    color: #1f2937;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.form-subtitle {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+    font-weight: 500;
+}
+
+/* Grupos de inputs con labels flotantes */
+.input-group {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.input-label {
+    position: absolute;
+    left: 1.2rem;
+    top: 1rem;
+    color: #9ca3af;
+    font-size: 1rem;
+    font-weight: 500;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    z-index: 1;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 1.2rem 1.4rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    font-size: 1rem;
+    background: #f8fafc;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    position: relative;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #06b6d4;
+    background: white;
+    box-shadow: 
+        0 0 0 4px rgba(6, 182, 212, 0.1),
+        0 8px 25px rgba(6, 182, 212, 0.15);
+    transform: translateY(-2px);
+}
+
+input[type="text"]:focus + .input-label,
+input[type="email"]:focus + .input-label,
+input[type="password"]:focus + .input-label,
+input[type="text"]:not(:placeholder-shown) + .input-label,
+input[type="email"]:not(:placeholder-shown) + .input-label,
+input[type="password"]:not(:placeholder-shown) + .input-label {
+    top: -0.7rem;
+    left: 1rem;
+    font-size: 0.85rem;
+    color: #06b6d4;
+    background: white;
+    padding: 0 0.5rem;
+    font-weight: 600;
+}
+
+/* Validación visual con CSS */
+input[type="text"]:valid,
+input[type="email"]:valid,
+input[type="password"]:valid {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+input[type="text"]:invalid:not(:placeholder-shown),
+input[type="email"]:invalid:not(:placeholder-shown),
+input[type="password"]:invalid:not(:placeholder-shown) {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+/* Botón */
+button[type="submit"] {
+    width: 100%;
+    padding: 1.3rem;
+    background: linear-gradient(135deg, #059669 0%, #06b6d4 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    margin-top: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 15px 35px rgba(6, 182, 212, 0.4),
+        0 5px 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #047857 0%, #0891b2 100%);
+}
+
+button[type="submit"]:active {
+    transform: translateY(-1px);
+    transition: transform 0.1s;
+}
+
+/* Efecto de onda en el botón */
+button[type="submit"]::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button[type="submit"]:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Animaciones */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-20px) rotate(90deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(180deg);
+    }
+    75% {
+        transform: translateY(-30px) rotate(270deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    #registro-form {
+        padding: 2.5rem 2rem;
+        margin: 0 15px;
+        border-radius: 20px;
+    }
+    
+    h1 {
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .cart-icon {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .cart-icon svg {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .form-title {
+        font-size: 1.5rem;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        padding: 1rem 1.2rem;
+        font-size: 0.95rem;
+    }
+    
+    button[type="submit"] {
+        padding: 1.1rem;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 320px) {
+    #registro-form {
+        padding: 2rem 1.5rem;
+    }
+    
+    h1 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Estados adicionales para mejor UX */
+input[type="text"]:disabled,
+input[type="email"]:disabled,
+input[type="password"]:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+button[type="submit"]:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+button[type="submit"]:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Efectos de entrada escalonada para los inputs */
+.input-group:nth-child(1) {
+    animation: slideInLeft 0.6s ease-out 1s both;
+}
+
+.input-group:nth-child(2) {
+    animation: slideInLeft 0.6s ease-out 1.2s both;
+}
+
+.input-group:nth-child(3) {
+    animation: slideInLeft 0.6s ease-out 1.4s both;
+}
+
+button[type="submit"] {
+    animation: slideInUp 0.6s ease-out 1.6s both;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -2,18 +2,54 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizador de Ruta A*</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="stylesheet" th:href="@{/css/index.css}">
 </head>
 <body>
-<h1>Visualizador de Rutas A*</h1>
-<div class="controls">
-    <button onclick="resetGrid()">Resetear Grid</button>
-    <button onclick="startVisualization()">Calcular Ruta</button>
-    <button onclick="generarMapaBSP()">Generar Mapa Aleatorio (BSP)</button>
-</div>
-<table id="grid"></table>
+    <!-- Header principal -->
+    <div class="header-section">
+        Sección Principal
+    </div>
+    
+    <!-- Barra de navegación -->
+    <div class="nav-bar">
+        <div class="logo">
+            <span>A* Pathfinder</span>
+        </div>
+        <button class="menu-toggle">☰</button>
+    </div>
+    
+    <!-- Contenedor principal -->
+    <div class="main-container">
+        <!-- Área de pantalla principal -->
+        <table id="grid"></table>
+        <!-- Botón principal -->
+        <button class="primary-button" onclick="startVisualization()">
+            Calcular Ruta
+        </button>
+        
+        <!-- Botones secundarios -->
+        <div class="secondary-buttons">
+            <button class="secondary-button" onclick="resetGrid()">
+                Resetear Grid
+            </button>
+            <button class="secondary-button" onclick="generarMapaBSP()">
+                Generar Mapa Aleatorio (BSP)
+            </button>
+        </div>
+    </div>
 
-<script th:src="@{/js/script.js}"></script>
+    <!-- Controles originales ocultos para mantener compatibilidad -->
+    <div class="controls" style="display: none;">
+        <button onclick="resetGrid()">Resetear Grid</button>
+        <button onclick="startVisualization()">Calcular Ruta</button>
+        <button onclick="generarMapaBSP()">Generar Mapa Aleatorio (BSP)</button>
+    </div>
+
+    <h1>Visualizador de Rutas A*</h1>
+
+    <script th:src="@{/js/script.js}"></script>
 </body>
 </html>

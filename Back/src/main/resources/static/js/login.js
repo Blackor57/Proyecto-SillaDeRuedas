@@ -1,3 +1,5 @@
+
+// Backend
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -30,3 +32,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         alert('Error al iniciar sesión: ' + err.message);
     }
 });
+
+//Frontend
+

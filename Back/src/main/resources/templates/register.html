@@ -2,19 +2,41 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/register.css}">
 </head>
 <body>
-<h1>Registro</h1>
+    <!-- Elementos flotantes de fondo -->
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
 
-<form id="registro-form">
-    <input type="text" id="registro-nombre" name="nombre" />
-    <input type="email" id="registro-correo" name="correo" />
-    <input type="password" id="registro-password" name="password" />
-    <button type="submit">Registrarse</button>
-</form>
 
-<script th:src="@{/js/register.js}"></script>
+    <h1>TENGA UNA CUENTA CON NOSOTROS !!!</h1>
+
+    <form id="registro-form">
+        <div class="form-title">REGISTRO</div>
+        
+        <div class="input-group">
+            <input type="text" id="registro-nombre" name="nombre" placeholder=" " required minlength="2">
+            <label for="registro-nombre" class="input-label">Nombre</label>
+        </div>
+        
+        <div class="input-group">
+            <input type="email" id="registro-correo" name="correo" placeholder=" " required>
+            <label for="registro-correo" class="input-label">Correo</label>
+        </div>
+        
+        <div class="input-group">
+            <input type="password" id="registro-password" name="password" placeholder=" " required minlength="6">
+            <label for="registro-password" class="input-label">Contraseña</label>
+        </div>
+        
+        <button type="submit">Registrarse</button>
+    </form>
+
+    <script th:src="@{/js/register.js}"></script>
 </body>
 </html>
