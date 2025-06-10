@@ -17,11 +17,12 @@ public class MapaRequest {
     private List<NodoDTO> nodos;
     private List<AristaDTO> aristas;
     private List<Coordenada> muros = new ArrayList<>();
+    private List<MuebleDTO> muebles = new ArrayList<>();
+    private List<HabitacionDTO> habitaciones = new ArrayList<>();
 
-    // Constructor con solo nodos y aristas
-    public MapaRequest(List<NodoDTO> nodos, List<AristaDTO> aristas) {
+    public MapaRequest(List<NodoDTO> nodos, List<AristaDTO> aristas, List<Coordenada> muros) {
         this.nodos = nodos;
         this.aristas = aristas;
-        this.muros = new ArrayList<>();
+        this.muros = muros;
     }
 }

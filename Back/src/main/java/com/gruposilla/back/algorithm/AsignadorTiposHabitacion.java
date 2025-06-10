@@ -5,7 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -16,46 +20,40 @@ public class AsignadorTiposHabitacion {
     private int mapaAlto;
 
     public void asignarTipos(List<Habitacion> habitaciones) {
-        for (Habitacion h : habitaciones) {
-            String tipo = determinarTipo(h);
-            h.setTipo(tipo);
+        // Ordenar habitaciones por tamaño descendente (más grandes primero)
+        habitaciones.sort(Comparator.comparingInt(h -> -(h.getAncho() * h.getAlto())));
+
+        // Cantidades deseadas por tipo
+        Map<String, Integer> cantidadesDeseadas = new LinkedHashMap<>();
+        cantidadesDeseadas.put("Sala", 1);
+        cantidadesDeseadas.put("Dormitorio", 2);
+        cantidadesDeseadas.put("Baño", 2);
+        cantidadesDeseadas.put("Cocina", 1);
+        cantidadesDeseadas.put("Recibidor", 1);
+
+        int index = 0;
+
+        for (Map.Entry<String, Integer> entry : cantidadesDeseadas.entrySet()) {
+            String tipo = entry.getKey();
+            int cantidad = entry.getValue();
+
+            for (int i = 0; i < cantidad && index < habitaciones.size(); i++, index++) {
+                habitaciones.get(index).setTipo(tipo);
+            }
         }
+
+        // Las habitaciones restantes se etiquetan como "Pasillo"
+        while (index < habitaciones.size()) {
+            habitaciones.get(index++).setTipo("Pasillo");
+        }
+
     }
 
-    private String determinarTipo(Habitacion h) {
-        int ancho = h.getAncho();
-        int alto = h.getAlto();
-        int x = h.getX();
-        int y = h.getY();
+    public void imprimirResumenHabitaciones(List<Habitacion> habitaciones) {
+        Map<String, Long> conteo = habitaciones.stream()
+                .collect(Collectors.groupingBy(Habitacion::getTipo, Collectors.counting()));
 
-        // Sala si es muy grande
-        if (ancho >= 8 && alto >= 8) {
-            return "Sala";
-        }
-
-        // Dormitorio si está en esquina
-        if (esEnEsquina(x, y)) {
-            return "Dormitorio";
-        }
-
-        // Recibidor cerca de entrada (asumimos entrada en (0,0) o cerca)
-        if (estaCercaDeEntrada(x, y)) {
-            return "Recibidor";
-        }
-
-        // Cocina o baño aleatorio para el resto
-        return Math.random() < 0.5 ? "Cocina" : "Baño";
-    }
-
-    private boolean esEnEsquina(int x, int y) {
-        return (x <= 1 && y <= 1) || // esquina superior izquierda
-                (x >= mapaAncho - 2 && y <= 1) || // esquina superior derecha
-                (x <= 1 && y >= mapaAlto - 2) || // esquina inferior izquierda
-                (x >= mapaAncho - 2 && y >= mapaAlto - 2); // esquina inferior derecha
-    }
-
-    private boolean estaCercaDeEntrada(int x, int y) {
-        // Consideramos entrada cerca de (0,0)
-        return x <= 3 && y <= 3;
+        System.out.println("Resumen de tipos de habitación:");
+        conteo.forEach((tipo, cantidad) -> System.out.println(tipo + ": " + cantidad));
     }
 }

@@ -3,6 +3,7 @@ package com.gruposilla.back.algorithm;
 import com.gruposilla.back.algorithm.graph.ConexionHabitacion;
 import com.gruposilla.back.algorithm.graph.Coordenada;
 import com.gruposilla.back.algorithm.graph.Habitacion;
+import com.gruposilla.back.algorithm.graph.Mueble;
 import com.gruposilla.back.model.DTO.AristaDTO;
 import com.gruposilla.back.model.DTO.MapaRequest;
 import com.gruposilla.back.model.DTO.NodoDTO;
@@ -23,6 +24,7 @@ public class BSPGenerator {
 
         AsignadorTiposHabitacion asignador = new AsignadorTiposHabitacion(ancho, alto);
         asignador.asignarTipos(habitaciones);
+        asignador.imprimirResumenHabitaciones(habitaciones);
 
         AsignadorDeMuebles mueblador = new AsignadorDeMuebles();
         mueblador.asignarMuebles(habitaciones);
@@ -104,12 +106,19 @@ public class BSPGenerator {
         int x2 = h2.getCentroX();
         int y2 = h2.getCentroY();
 
-        if (new Random().nextBoolean()) {
+        if (x1 == x2 || y1 == y2) {
+            // camino directo
             crearPasilloHorizontal(x1, x2, y1);
             crearPasilloVertical(y1, y2, x2);
         } else {
-            crearPasilloVertical(y1, y2, x1);
-            crearPasilloHorizontal(x1, x2, y2);
+            // camino en L (al azar)
+            if (new Random().nextBoolean()) {
+                crearPasilloHorizontal(x1, x2, y1);
+                crearPasilloVertical(y1, y2, x2);
+            } else {
+                crearPasilloVertical(y1, y2, x1);
+                crearPasilloHorizontal(x1, x2, y2);
+            }
         }
     }
 
@@ -164,23 +173,43 @@ public class BSPGenerator {
         List<NodoDTO> nodos = new ArrayList<>();
         List<AristaDTO> aristas = new ArrayList<>();
         Map<String, String> nodoIds = new HashMap<>();
+
         int idCounter = 0;
 
         // Marcar habitaciones y pasillos en el grid
         for (Habitacion h : habitaciones) {
             for (int x = h.getX(); x < h.getX() + h.getAncho(); x++) {
                 for (int y = h.getY(); y < h.getY() + h.getAlto(); y++) {
-                    if (x >= 0 && x < ancho && y >= 0 && y < alto && !grid[x][y]) {
+                    if (x >= 0 && x < ancho && y >= 0 && y < alto) {
                         grid[x][y] = true;
-                        String id = "n" + idCounter++;
-                        nodoIds.put(x + "," + y, id);
-                        nodos.add(new NodoDTO(id, x, y));
                     }
                 }
             }
         }
 
-        // Crear aristas entre vecinos válidos
+        // Marcar celdas ocupadas por muebles con colisión como no caminables
+        for (Habitacion h : habitaciones) {
+            if (h.getMueblesConColision() != null) {
+                for (Coordenada c : h.getMueblesConColision()) {
+                    if (c.getX() >= 0 && c.getX() < ancho && c.getY() >= 0 && c.getY() < alto) {
+                        grid[c.getX()][c.getY()] = false; // Bloqueamos esta celda
+                    }
+                }
+            }
+        }
+
+        // Crear nodos válidos
+        for (int x = 0; x < ancho; x++) {
+            for (int y = 0; y < alto; y++) {
+                if (grid[x][y]) {
+                    String id = "n" + idCounter++;
+                    nodoIds.put(x + "," + y, id);
+                    nodos.add(new NodoDTO(id, x, y));
+                }
+            }
+        }
+
+        // Crear aristas entre vecinos válidos (4-direcciones)
         int[][] dirs = {{0,1}, {1,0}, {0,-1}, {-1,0}};
         for (NodoDTO nodo : nodos) {
             int x = (int) Math.round(nodo.getX());
@@ -196,7 +225,6 @@ public class BSPGenerator {
         }
 
         List<Coordenada> muros = calcularMuros(grid);
-        // Añadir muros en los bordes
         agregarMurosDeBorde(grid, muros);
 
         return new MapaRequest(nodos, aristas, muros);
@@ -222,27 +250,69 @@ public class BSPGenerator {
 
     public void imprimirMapaVisual(int ancho, int alto) {
         char[][] grid = new char[ancho][alto];
+
+        // Primero dibujar habitaciones
         for (Habitacion h : habitaciones) {
-            char simbolo = ' ';
-            switch(h.getTipo()) {
-                case "Sala": simbolo = 'S'; break;
-                case "Dormitorio": simbolo = 'D'; break;
-                case "Pasillo": simbolo = 'P'; break;
-                case "Cocina": simbolo = 'C'; break;
-                default: simbolo = '?'; break;
-            }
+            char simbolo = switch (h.getTipo()) {
+                case "Sala" -> 'S';
+                case "Dormitorio" -> 'D';
+                case "Pasillo" -> 'P';
+                case "Cocina" -> 'C';
+                case "Baño" -> 'B';
+                case "Recibidor" -> 'R';
+                default -> '?';
+            };
+
             for (int x = h.getX(); x < h.getX() + h.getAncho(); x++) {
                 for (int y = h.getY(); y < h.getY() + h.getAlto(); y++) {
-                    grid[x][y] = simbolo;
+                    if (x >= 0 && x < ancho && y >= 0 && y < alto) {
+                        grid[x][y] = simbolo;
+                    }
+                }
+            }
+
+            // Luego dibujar los muebles encima
+            for (Mueble m : h.getMuebles()) {
+                for (int dx = 0; dx < m.getAncho(); dx++) {
+                    for (int dy = 0; dy < m.getAlto(); dy++) {
+                        int x = m.getPosicion().getX() + dx;
+                        int y = m.getPosicion().getY() + dy;
+                        if (x >= 0 && x < ancho && y >= 0 && y < alto) {
+                            grid[x][y] = obtenerSimboloMueble(m.getTipo());
+                        }
+                    }
                 }
             }
         }
 
+        // Imprimir
         for (int y = 0; y < alto; y++) {
             for (int x = 0; x < ancho; x++) {
                 System.out.print(grid[x][y] == 0 ? ' ' : grid[x][y]);
             }
             System.out.println();
         }
+    }
+
+
+
+    // Método auxiliar para asignar símbolo a cada mueble
+    private char obtenerSimboloMueble(String tipo) {
+        return switch (tipo) {
+            case "Sofá" -> 's';
+            case "Mesa de centro", "Mesa de noche", "Mesa de cocina" -> 'm';
+            case "TV" -> 't';
+            case "Cama" -> 'c';
+            case "Ropero" -> 'r';
+            case "Refrigerador" -> 'f';
+            case "Estufa" -> 'e';
+            case "Inodoro" -> 'i';
+            case "Lavamanos" -> 'l';
+            case "Ducha" -> 'd';
+            case "Perchero" -> 'p';
+            case "Espejo" -> 'v';
+            case "Zapatera" -> 'z';
+            default -> '*';
+        };
     }
 }
