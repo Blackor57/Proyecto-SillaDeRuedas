@@ -16,8 +16,13 @@ public class BSPGenerator {
 
     private final int MIN_TAMANIO = 6;
     private List<Habitacion> habitaciones;
+    private boolean usarPasilloCentral = false      ; // Configuración para elegir el tipo de pasillos
+    private int mapaAncho;
+    private int mapaAlto;
 
     public MapaRequest generarMapa(int ancho, int alto) {
+        this.mapaAncho = ancho;
+        this.mapaAlto = alto;
         habitaciones = new ArrayList<>();
         NodoBSP raiz = dividir(new NodoBSP(0, 0, ancho, alto));
         crearHabitaciones(raiz);
@@ -29,12 +34,99 @@ public class BSPGenerator {
         AsignadorDeMuebles mueblador = new AsignadorDeMuebles();
         mueblador.asignarMuebles(habitaciones);
 
-        conectarHabitacionesConMST();
+        if (usarPasilloCentral) {
+            generarPasilloCentral();
+        } else {
+            conectarHabitacionesConMST();
+        }
 
         imprimirMapaVisual(ancho, alto);
 
         return convertirHabitacionesAMapa(ancho, alto);
     }
+
+    private void generarPasilloCentral() {
+        boolean vertical = mapaAncho < mapaAlto;
+
+        if (vertical) {
+            int centroX = mapaAncho / 2;
+            crearPasilloVertical(0, mapaAlto - 1, centroX);
+        } else {
+            int centroY = mapaAlto / 2;
+            crearPasilloHorizontal(0, mapaAncho - 1, centroY);
+        }
+
+        // Conectar habitaciones al pasillo central
+        for (Habitacion hab : habitaciones) {
+            conectarAlPasilloCentral(hab, vertical);
+        }
+    }
+
+    private void conectarAlPasilloCentral(Habitacion hab, boolean vertical) {
+        if (vertical) {
+            int centroX = mapaAncho / 2;
+            int y = hab.getCentroY();
+            crearPasilloHorizontal(hab.getCentroX(), centroX, y);
+        } else {
+            int centroY = mapaAlto / 2;
+            int x = hab.getCentroX();
+            crearPasilloVertical(hab.getCentroY(), centroY, x);
+        }
+    }
+
+    private boolean esEsquina(Habitacion hab) {
+        return (hab.getX() <= 1 || hab.getX() + hab.getAncho() >= mapaAncho - 1) &&
+                (hab.getY() <= 1 || hab.getY() + hab.getAlto() >= mapaAlto - 1);
+    }
+
+    private int ajustarDesdeEsquina(int coord, int inicio, int tamanio) {
+        if (coord == inicio) {
+            return coord + 1;
+        } else if (coord == inicio + tamanio - 1) {
+            return coord - 1;
+        }
+        return coord;
+    }
+
+
+    private void crearPasilloEntreHabitaciones(Habitacion h1, Habitacion h2) {
+        int x1 = h1.getCentroX();
+        int y1 = h1.getCentroY();
+        int x2 = h2.getCentroX();
+        int y2 = h2.getCentroY();
+
+        // Verificar si estamos en una esquina
+        boolean esquina1 = esEsquina(h1);
+        boolean esquina2 = esEsquina(h2);
+
+        if (esquina1 || esquina2) {
+            // Evitar conectar directamente desde la esquina
+            if (esquina1) {
+                x1 = ajustarDesdeEsquina(x1, h1.getX(), h1.getAncho());
+                y1 = ajustarDesdeEsquina(y1, h1.getY(), h1.getAlto());
+            }
+            if (esquina2) {
+                x2 = ajustarDesdeEsquina(x2, h2.getX(), h2.getAncho());
+                y2 = ajustarDesdeEsquina(y2, h2.getY(), h2.getAlto());
+            }
+        }
+
+        if (x1 == x2 || y1 == y2) {
+            crearPasilloHorizontal(x1, x2, y1);
+            crearPasilloVertical(y1, y2, x2);
+        } else {
+            if (new Random().nextBoolean()) {
+                crearPasilloHorizontal(x1, x2, y1);
+                crearPasilloVertical(y1, y2, x2);
+            } else {
+                crearPasilloVertical(y1, y2, x1);
+                crearPasilloHorizontal(x1, x2, y2);
+            }
+        }
+    }
+
+
+
 
     private void crearPasilloHorizontal(int x1, int x2, int y) {
         for (int x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
@@ -79,11 +171,11 @@ public class BSPGenerator {
 
             if (roomW > 4) {
                 roomX += 1;
-                roomW -= 2;
+                roomW = Math.max(1, roomW - 2);
             }
             if (roomH > 4) {
                 roomY += 1;
-                roomH -= 2;
+                roomH = Math.max(1, roomH - 2);
             }
 
             habitaciones.add(new Habitacion(roomX, roomY, roomW, roomH));
@@ -100,66 +192,31 @@ public class BSPGenerator {
         }
     }
 
-    private void crearPasilloEntreHabitaciones(Habitacion h1, Habitacion h2) {
-        int x1 = h1.getCentroX();
-        int y1 = h1.getCentroY();
-        int x2 = h2.getCentroX();
-        int y2 = h2.getCentroY();
-
-        if (x1 == x2 || y1 == y2) {
-            // camino directo
-            crearPasilloHorizontal(x1, x2, y1);
-            crearPasilloVertical(y1, y2, x2);
-        } else {
-            // camino en L (al azar)
-            if (new Random().nextBoolean()) {
-                crearPasilloHorizontal(x1, x2, y1);
-                crearPasilloVertical(y1, y2, x2);
-            } else {
-                crearPasilloVertical(y1, y2, x1);
-                crearPasilloHorizontal(x1, x2, y2);
-            }
-        }
-    }
-
-    private void agregarMurosDeBorde(boolean[][] grid, List<Coordenada> muros) {
-        int ancho = grid.length;
-        int alto = grid[0].length;
-
-        for (int x = 0; x < ancho; x++) {
-            if (!grid[x][0]) muros.add(new Coordenada(x, 0)); // Superior
-            if (!grid[x][alto - 1]) muros.add(new Coordenada(x, alto - 1)); // Inferior
-        }
-
-        for (int y = 0; y < alto; y++) {
-            if (!grid[0][y]) muros.add(new Coordenada(0, y)); // Izquierdo
-            if (!grid[ancho - 1][y]) muros.add(new Coordenada(ancho - 1, y)); // Derecho
-        }
-    }
-
     private List<Coordenada> calcularMuros(boolean[][] grid) {
         List<Coordenada> muros = new ArrayList<>();
         int ancho = grid.length;
         int alto = grid[0].length;
 
+        int[][] direcciones = {
+                {0, 1}, {1, 0}, {0, -1}, {-1, 0}
+        };
+
+        Set<String> agregados = new HashSet<>();
+
         for (int x = 0; x < ancho; x++) {
             for (int y = 0; y < alto; y++) {
-                if (!grid[x][y]) {
-                    boolean adyacenteAOcupado = false;
-                    // Revisar vecinos: si hay uno ocupado, este es un muro válido
-                    int[][] dirs = {{0,1}, {1,0}, {0,-1}, {-1,0}};
-                    for (int[] d : dirs) {
-                        int nx = x + d[0];
-                        int ny = y + d[1];
-                        if (nx >= 0 && nx < ancho && ny >= 0 && ny < alto) {
-                            if (grid[nx][ny]) {
-                                adyacenteAOcupado = true;
-                                break;
+                if (grid[x][y]) {
+                    for (int[] dir : direcciones) {
+                        int nx = x + dir[0];
+                        int ny = y + dir[1];
+
+                        // Solo agregamos como muro si está dentro del mapa
+                        if (nx >= 0 && nx < ancho && ny >= 0 && ny < alto && !grid[nx][ny]) {
+                            String key = nx + "," + ny;
+                            if (agregados.add(key)) {
+                                muros.add(new Coordenada(nx, ny));
                             }
                         }
-                    }
-                    if (adyacenteAOcupado) {
-                        muros.add(new Coordenada(x, y));
                     }
                 }
             }
@@ -225,7 +282,6 @@ public class BSPGenerator {
         }
 
         List<Coordenada> muros = calcularMuros(grid);
-        agregarMurosDeBorde(grid, muros);
 
         return new MapaRequest(nodos, aristas, muros);
     }
