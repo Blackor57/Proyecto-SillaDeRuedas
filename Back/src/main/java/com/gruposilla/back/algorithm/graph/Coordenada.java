@@ -1,4 +1,4 @@
-package com.gruposilla.back.model.DTO;
+package com.gruposilla.back.algorithm.graph;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class CoordenadaDTO {
-    private double x;
-    private double y;
+public class Coordenada {
+    private int x;
+    private int y;
 }

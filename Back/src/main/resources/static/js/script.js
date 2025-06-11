@@ -49,13 +49,24 @@ function construirMapaParaBackend() {
     return { nodos, aristas };
 }
 
+
+
 async function guardarMapaEnBackend() {
     const mapa = construirMapaParaBackend();
+    const token = localStorage.getItem('token');
 
+    if (!token) {
+        alert('No hay token JWT disponible. Inicia sesión primero.');
+        console.log('Token enviado:', token);
+        return;
+    }
     try {
         const response = await fetch('/api/ruta/guardar-mapa', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
             body: JSON.stringify(mapa)
         });
 
@@ -107,6 +118,7 @@ function resetGrid() {
     startNode = null;
     endNode = null;
     placing = 'start';
+    mapaYaGuardado = false;
     createGrid();
 }
 
@@ -137,7 +149,10 @@ async function startVisualization() {
     try {
         const response = await fetch('/api/ruta', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
             body: JSON.stringify({ inicioX, inicioY, finX, finY })
         });
 
@@ -158,6 +173,47 @@ async function startVisualization() {
 
     } catch (err) {
         alert('Error: ' + err.message);
+    }
+}
+
+async function generarMapaBSP() {
+    try {
+        const response = await fetch('/api/ruta/generar-bsp', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error('Error al generar el mapa');
+
+        const mapa = await response.json();
+
+        // ✅ Limpia completamente el grid
+        resetGrid();
+
+        // ✅ Limpia todas las clases 'wall' por si quedaron residuos
+        document.querySelectorAll('td').forEach(cell => cell.classList.remove('wall'));
+
+        // ✅ Usamos un Set para acceder rápidamente a los nodos válidos
+        const nodosSet = new Set(mapa.nodos.map(n => `${n.x},${n.y}`));
+
+        // ✅ Solo marcamos como muro aquellas celdas que no están en nodos
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                const key = `${x},${y}`;
+                const cell = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+                if (cell && !nodosSet.has(key)) {
+                    cell.classList.add('wall');
+                }
+            }
+        }
+
+        mapaYaGuardado = true; // como vino del backend, ya está guardado
+
+    } catch (err) {
+        alert('Error al generar mapa BSP: ' + err.message);
     }
 }
 

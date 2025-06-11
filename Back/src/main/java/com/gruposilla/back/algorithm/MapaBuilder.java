@@ -2,8 +2,8 @@ package com.gruposilla.back.algorithm;
 
 import com.gruposilla.back.algorithm.graph.Arista;
 import com.gruposilla.back.algorithm.graph.Nodo;
-import com.gruposilla.back.model.entity.AristaEntity;
-import com.gruposilla.back.model.entity.NodoEntity;
+import com.gruposilla.back.model.DTO.AristaDTO;
+import com.gruposilla.back.model.DTO.NodoDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,20 +14,36 @@ import java.util.Map;
 @Service
 public class MapaBuilder {
 
-    public Map<Long, Nodo> construirMapa(List<NodoEntity> nodosBD, List<AristaEntity> aristasBD) {
-        Map<Long, Nodo> mapa = new HashMap<>();
 
-        for (NodoEntity ne : nodosBD) {
-            Nodo nodo = new Nodo(ne.getId(), ne.getX(), ne.getY(), new ArrayList<>(), 0, 0, 0, null);
-            mapa.put(ne.getId(), nodo);
+    public Map<String, Nodo> construirMapaDesdeJson(List<NodoDTO> nodosDTO, List<AristaDTO> aristasDTO) {
+        Map<String, Nodo> mapa = new HashMap<>();
+
+        // Crear los nodos
+        for (NodoDTO dto : nodosDTO) {
+            Nodo nodo = new Nodo();
+            nodo.setId(-1); // ya no usamos ID de DB, puedes dejarlo como -1 o un contador
+            nodo.setX(dto.getX());
+            nodo.setY(dto.getY());
+            nodo.setConexiones(new ArrayList<>());
+            nodo.setG(0);
+            nodo.setH(0);
+            nodo.setF(0);
+            nodo.setPadre(null);
+
+            mapa.put(dto.getIdentificador(), nodo);
         }
 
-        for (AristaEntity ae : aristasBD) {
-            Nodo origen = mapa.get(ae.getOrigen().getId());
-            Nodo destino = mapa.get(ae.getDestino().getId());
-            origen.getConexiones().add(new Arista(destino, ae.getCosto()));
+        // Crear las aristas
+        for (AristaDTO aristaDTO : aristasDTO) {
+            Nodo origen = mapa.get(aristaDTO.getOrigenId());
+            Nodo destino = mapa.get(aristaDTO.getDestinoId());
+
+            if (origen != null && destino != null) {
+                origen.getConexiones().add(new Arista(destino, aristaDTO.getCosto()));
+            }
         }
 
         return mapa;
     }
 }
+

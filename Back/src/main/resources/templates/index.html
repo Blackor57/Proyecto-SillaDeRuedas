@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Visualizador de Ruta A*</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
 
@@ -19,12 +19,13 @@
 <div class="controls">
     <button onclick="resetGrid()">Resetear Grid</button>
     <button onclick="startVisualization()">Calcular Ruta</button>
+    <button onclick="generarMapaBSP()">Generar Mapa Aleatorio (BSP)</button>
 </div>
 <table id="grid"></table>
   </main>
 
 
 
-<script src="js/script.js"></script>
+<script th:src="@{/js/script.js}"></script>
 </body>
 </html>
