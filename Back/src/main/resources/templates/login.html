@@ -1,17 +1,36 @@
+
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
 <body>
-<h1>Iniciar sesión</h1>
+<!-- Ícono del carrito -->
+
+<h1>BIENVENIDO AL APLICATIVO</h1>
 
 <form id="loginForm">
-    <input type="email" id="correo" placeholder="Correo" required>
-    <input type="password" id="password" placeholder="Contraseña" required>
-    <button type="submit">Iniciar sesión</button>
+    <div class="form-title">INICIAR SESIÓN</div>
+    <div class="form-subtitle">Correo</div>
+
+    <div class="input-group">
+        <input type="email" id="correo" placeholder="Ingresa tu correo electrónico" required>
+    </div>
+
+    <div class="input-group">
+        <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+    </div>
+
+    <button type="submit">Iniciar Sesión</button>
+
+    <div class="register-text">
+        ¿No tiene una cuenta?
+        <a href="#" class="register-link">Regístrese Aquí</a>
+    </div>
 </form>
 
 <script th:src="@{/js/login.js}"></script>
