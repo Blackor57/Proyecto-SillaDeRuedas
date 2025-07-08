@@ -52,8 +52,14 @@
     <button onclick="generarMapaBSP()">Generar Mapa Aleatorio (BSP)</button>
 </div>
 
-<h1>Visualizador de Rutas A*</h1>
-
 <script th:src="@{/js/script.js}"></script>
+<h1>Visualizador de Rutas A*</h1>
+<!-- Modal de reconocimiento de voz -->
+<div id="voice-modal" class="voice-modal hidden">
+    <div class="modal-content">
+        <span class="microphone-icon">🎤</span>
+        <p>Escuchando...</p>
+    </div>
+</div>
 </body>
 </html>

@@ -224,14 +224,17 @@ async function buscarPorVoz() {
     recognition.lang = 'es-ES';
     recognition.interimResults = false;
 
+    const modal = document.getElementById("voice-modal");
+    modal.classList.remove("hidden");  // Mostrar modal
+
     recognition.onresult = async (event) => {
+        modal.classList.add("hidden");  // Ocultar modal
         const transcript = event.results[0][0].transcript.trim().toLowerCase();
         const tipoHabitacion = transcript.charAt(0).toUpperCase() + transcript.slice(1);
 
         console.log("Habitación solicitada por voz:", tipoHabitacion);
 
         try {
-            // Obtener coordenada destino
             const response = await fetch(`/api/ruta/mapa/centro?tipo=${tipoHabitacion}`);
             if (!response.ok) throw new Error("Habitación no encontrada");
 
@@ -267,7 +270,6 @@ async function buscarPorVoz() {
 
             const ruta = await rutaResponse.json();
 
-            // Pintar la ruta
             for (let i = 1; i < ruta.length - 1; i++) {
                 const { x, y } = ruta[i];
                 const cell = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
@@ -277,7 +279,6 @@ async function buscarPorVoz() {
                 }
             }
 
-            // Convertir el nodo destino en nuevo nodo de inicio
             if (endNode) endNode.classList.remove('end');
 
             const nuevaInicio = document.querySelector(`td[data-x="${finX}"][data-y="${finY}"]`);
@@ -290,7 +291,6 @@ async function buscarPorVoz() {
                 placing = 'wall';
             }
 
-            // Reproducir voz opcional
             const mensaje = `Has llegado al ${tipoHabitacion}`;
             const utterance = new SpeechSynthesisUtterance(mensaje);
             utterance.lang = 'es-ES';
@@ -303,8 +303,13 @@ async function buscarPorVoz() {
     };
 
     recognition.onerror = (event) => {
+        modal.classList.add("hidden");  // Ocultar modal si hay error
         console.error("Error de reconocimiento:", event.error);
         alert("Error al reconocer la voz: " + event.error);
+    };
+
+    recognition.onend = () => {
+        modal.classList.add("hidden");  // Ocultar modal al finalizar
     };
 
     recognition.start();
