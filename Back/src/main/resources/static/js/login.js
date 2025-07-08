@@ -24,7 +24,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         console.log('Inicio de sesión exitoso. Usuario autenticado.');
         alert('Inicio de sesión exitoso');
         // window.location.href = '/dashboard'; // Redirige si deseas
-
+        window.location.href = '/view/index';
     } catch (err) {
         console.error('Error en la solicitud:', err.message);
         alert('Error al iniciar sesión: ' + err.message);

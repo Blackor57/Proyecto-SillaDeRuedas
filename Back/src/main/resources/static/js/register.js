@@ -16,6 +16,8 @@ document.getElementById('registro-form').addEventListener('submit', async functi
 
         if (!response.ok) throw new Error(await response.text());
         alert('Usuario registrado con éxito.');
+
+        window.location.href = '/view/login.js';
     } catch (err) {
         alert('Error al registrarse: ' + err.message);
     }

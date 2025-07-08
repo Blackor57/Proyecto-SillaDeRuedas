@@ -39,8 +39,12 @@ public class BSPGenerator {
         imprimirMapaVisual(ancho, alto);
 
         return convertirHabitacionesAMapa(ancho, alto);
+
     }
 
+    public List<Habitacion> getHabitaciones() {
+        return habitaciones;
+    }
 
     private boolean esEsquina(Habitacion hab) {
         return (hab.getX() <= 1 || hab.getX() + hab.getAncho() >= mapaAncho - 1) &&

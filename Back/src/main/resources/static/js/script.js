@@ -218,3 +218,94 @@ async function generarMapaBSP() {
 }
 
 createGrid();
+
+async function buscarPorVoz() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+
+    recognition.onresult = async (event) => {
+        const transcript = event.results[0][0].transcript.trim().toLowerCase();
+        const tipoHabitacion = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+
+        console.log("Habitación solicitada por voz:", tipoHabitacion);
+
+        try {
+            // Obtener coordenada destino
+            const response = await fetch(`/api/ruta/mapa/centro?tipo=${tipoHabitacion}`);
+            if (!response.ok) throw new Error("Habitación no encontrada");
+
+            const destino = await response.json();
+
+            if (!startNode) {
+                alert("Primero selecciona un nodo de inicio");
+                return;
+            }
+
+            clearPath();
+
+            if (!mapaYaGuardado) {
+                await guardarMapaEnBackend();
+                mapaYaGuardado = true;
+            }
+
+            const inicioX = parseInt(startNode.dataset.x);
+            const inicioY = parseInt(startNode.dataset.y);
+            const finX = destino.x;
+            const finY = destino.y;
+
+            const rutaResponse = await fetch('/api/ruta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify({ inicioX, inicioY, finX, finY })
+            });
+
+            if (!rutaResponse.ok) throw new Error("No se pudo calcular la ruta");
+
+            const ruta = await rutaResponse.json();
+
+            // Pintar la ruta
+            for (let i = 1; i < ruta.length - 1; i++) {
+                const { x, y } = ruta[i];
+                const cell = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+                if (cell) {
+                    cell.classList.add('path');
+                    await new Promise(r => setTimeout(r, 30));
+                }
+            }
+
+            // Convertir el nodo destino en nuevo nodo de inicio
+            if (endNode) endNode.classList.remove('end');
+
+            const nuevaInicio = document.querySelector(`td[data-x="${finX}"][data-y="${finY}"]`);
+            if (nuevaInicio) {
+                nuevaInicio.classList.remove('path');
+                nuevaInicio.classList.add('start');
+                if (startNode) startNode.classList.remove('start');
+                startNode = nuevaInicio;
+                endNode = null;
+                placing = 'wall';
+            }
+
+            // Reproducir voz opcional
+            const mensaje = `Has llegado al ${tipoHabitacion}`;
+            const utterance = new SpeechSynthesisUtterance(mensaje);
+            utterance.lang = 'es-ES';
+            speechSynthesis.speak(utterance);
+
+        } catch (err) {
+            console.error("Error:", err);
+            alert("No se pudo calcular la ruta: " + err.message);
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Error de reconocimiento:", event.error);
+        alert("Error al reconocer la voz: " + event.error);
+    };
+
+    recognition.start();
+}

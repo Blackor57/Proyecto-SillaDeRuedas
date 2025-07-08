@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gruposilla.back.algorithm.AEstrellaService;
 import com.gruposilla.back.algorithm.BSPGenerator;
 import com.gruposilla.back.algorithm.MapaBuilder;
+import com.gruposilla.back.algorithm.graph.Coordenada;
+import com.gruposilla.back.algorithm.graph.Habitacion;
 import com.gruposilla.back.algorithm.graph.Nodo;
 import com.gruposilla.back.model.DTO.*;
 import com.gruposilla.back.model.entity.MapaEntity;
@@ -17,15 +19,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,6 +37,7 @@ public class RutaController {
     private final MapaBuilder mapaBuilder;
     private final MapaRepository mapaRepository;
     private final UsuarioRepository usuarioRepository;
+    private List<Habitacion> habitacionesGeneradas = new ArrayList<>();
 
     public RutaController(
             AEstrellaService aEstrellaService,
@@ -132,6 +134,8 @@ public class RutaController {
         BSPGenerator generator = new BSPGenerator();
         MapaRequest mapa = generator.generarMapa(30, 20);
 
+        this.habitacionesGeneradas = generator.getHabitaciones();
+
         // Obtener usuario
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
@@ -143,6 +147,28 @@ public class RutaController {
         guardarMapaInternamente(mapa, usuario);
 
         return ResponseEntity.ok(mapa);
+    }
+
+    @GetMapping("/mapa/centro")
+    public ResponseEntity<Coordenada> getCentroPorTipo(@RequestParam String tipo) {
+        System.out.println("🧭 Buscando habitación tipo: " + tipo);
+        System.out.println("Habitaciones disponibles:");
+
+        for (Habitacion h : habitacionesGeneradas) {
+            System.out.println("- " + h.getTipo());
+        }
+
+        Optional<Habitacion> hab = habitacionesGeneradas.stream()
+                .filter(h -> h.getTipo() != null && h.getTipo().equalsIgnoreCase(tipo))
+                .findFirst();
+
+        if (hab.isPresent()) {
+            Coordenada centro = new Coordenada(hab.get().getCentroX(), hab.get().getCentroY());
+            return ResponseEntity.ok(centro);
+        } else {
+            System.out.println("❌ No se encontró habitación del tipo: " + tipo);
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
